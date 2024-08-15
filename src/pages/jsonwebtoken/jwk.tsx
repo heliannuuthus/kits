@@ -17,7 +17,7 @@ import {
 import { createStyles } from "antd-style";
 import { useForm, useWatch } from "antd/es/form/Form";
 import useMessage from "antd/es/message/useMessage";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { error } from "tauri-plugin-log-api";
 import {
 	fetchJwkeyAlgs,
@@ -263,12 +263,21 @@ const minHeight = 450;
 
 const JWK = () => {
 	const [form] = useForm<JwkeyForm>();
-
+	const generator = useRef<HTMLDivElement>(null);
 	const [content, setContent] = useState<string>("");
 	const [msgApi, msgContent] = useMessage({
 		duration: 4,
 		maxCount: 1,
 	});
+
+	useEffect(() => {
+		if (content && generator.current) {
+			generator.current.scrollIntoView({
+				block: "start",
+				behavior: "smooth",
+			});
+		}
+	}, [content]);
 
 	const generateJwkey = async () => {
 		try {
@@ -316,6 +325,7 @@ const JWK = () => {
 			<Row>
 				<Col span={23}>
 					<Card
+						ref={generator}
 						title={
 							<div
 								style={{
