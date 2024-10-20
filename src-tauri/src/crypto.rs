@@ -24,7 +24,6 @@ macro_rules! add_encryption_trait_impl {
           pub key_encoding: TextEncoding,
           pub output_encoding: TextEncoding,
           $($field_name : $field_type,)*
-
       }
 
       impl EncryptionDto for $struct_name {

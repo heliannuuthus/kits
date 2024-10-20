@@ -3,6 +3,8 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 
+use crate::errors::{Error, Result};
+
 pub mod jwe;
 pub mod jwk;
 pub mod jws;
@@ -29,13 +31,13 @@ pub enum JwkeyType {
 }
 
 impl JwkeyType {
-    pub fn default_algorithm(self) -> JwkeyAlgorithm {
+    pub fn default_algorithm(self) -> JsonWebAlgorithm {
         match self {
-            JwkeyType::RSA => JwkeyAlgorithm::RS256,
-            JwkeyType::EcDSA => JwkeyAlgorithm::ES256,
-            JwkeyType::Ed25519 => JwkeyAlgorithm::EdDSA,
-            JwkeyType::X25519 => JwkeyAlgorithm::EcdhEs,
-            JwkeyType::Symmetric => JwkeyAlgorithm::A256GCM,
+            JwkeyType::RSA => JsonWebAlgorithm::RS256,
+            JwkeyType::EcDSA => JsonWebAlgorithm::ES256,
+            JwkeyType::Ed25519 => JsonWebAlgorithm::EdDSA,
+            JwkeyType::X25519 => JsonWebAlgorithm::EcdhEs,
+            JwkeyType::Symmetric => JsonWebAlgorithm::A256GCM,
         }
     }
 }
@@ -52,7 +54,7 @@ impl JwkeyType {
     PartialOrd,
     Ord,
 )]
-pub enum JwkeyAlgorithm {
+pub enum JsonWebAlgorithm {
     #[serde(rename = "dir")]
     Dir,
     A128KW,
@@ -105,6 +107,73 @@ pub enum JwkeyAlgorithm {
     EcdhEsA192kw,
     #[serde(rename = "ECDH-ES+A256KW")]
     EcdhEsA256kw,
+}
+
+impl JsonWebAlgorithm {
+    pub fn to_type(&self) -> JwkeyType {
+     match self {
+            JsonWebAlgorithm::Dir
+            | JsonWebAlgorithm::A128KW
+            | JsonWebAlgorithm::A192KW
+            | JsonWebAlgorithm::A256KW
+            | JsonWebAlgorithm::A128GCM
+            | JsonWebAlgorithm::A192GCM
+            | JsonWebAlgorithm::A256GCM
+            | JsonWebAlgorithm::A128GCMKW
+            | JsonWebAlgorithm::A192GCMKW
+            | JsonWebAlgorithm::A256GCMKW
+            | JsonWebAlgorithm::A128cbcHs256
+            | JsonWebAlgorithm::A192cbcHs384
+            | JsonWebAlgorithm::A256cbcHs512
+            | JsonWebAlgorithm::HS256
+            | JsonWebAlgorithm::HS384
+            | JsonWebAlgorithm::HS512 => JwkeyType::Symmetric,
+            JsonWebAlgorithm::ES256
+            | JsonWebAlgorithm::ES384
+            | JsonWebAlgorithm::ES521
+            | JsonWebAlgorithm::ES256K
+            | JsonWebAlgorithm::EdDSA
+            | JsonWebAlgorithm::EcdhEs
+            | JsonWebAlgorithm::EcdhEsA128kw
+            | JsonWebAlgorithm::EcdhEsA192kw
+            | JsonWebAlgorithm::EcdhEsA256kw => JwkeyType::EcDSA,
+            JsonWebAlgorithm::RS256
+            | JsonWebAlgorithm::RS384
+            | JsonWebAlgorithm::RS512
+            | JsonWebAlgorithm::PS256
+            | JsonWebAlgorithm::PS384
+            | JsonWebAlgorithm::PS512
+            | JsonWebAlgorithm::Rsa1_5
+            | JsonWebAlgorithm::RsaOaep
+            | JsonWebAlgorithm::RsaOaep256
+            | JsonWebAlgorithm::RsaOaep384
+            | JsonWebAlgorithm::RsaOaep521 => JwkeyType::RSA,
+        }
+    }
+}
+impl TryInto<jose_jwa::Signing> for JsonWebAlgorithm {
+    type Error = Error;
+
+    fn try_into(self) -> std::result::Result<jose_jwa::Signing, Self::Error> {
+        Ok(match self {
+            JsonWebAlgorithm::EdDSA => jose_jwa::Signing::EdDsa,
+            JsonWebAlgorithm::ES256 => jose_jwa::Signing::Es256,
+            JsonWebAlgorithm::ES256K => jose_jwa::Signing::Es256K,
+            JsonWebAlgorithm::ES384 => jose_jwa::Signing::Es384,
+            JsonWebAlgorithm::ES521 => jose_jwa::Signing::Es512,
+            JsonWebAlgorithm::HS256 => jose_jwa::Signing::Hs256,
+            JsonWebAlgorithm::HS384 => jose_jwa::Signing::Hs384,
+            JsonWebAlgorithm::HS512 => jose_jwa::Signing::Hs512,
+            JsonWebAlgorithm::PS256 => jose_jwa::Signing::Ps256,
+            JsonWebAlgorithm::PS384 => jose_jwa::Signing::Ps384,
+            JsonWebAlgorithm::PS512 => jose_jwa::Signing::Ps512,
+            JsonWebAlgorithm::RS256 => jose_jwa::Signing::Rs256,
+            JsonWebAlgorithm::RS384 => jose_jwa::Signing::Rs384,
+            JsonWebAlgorithm::RS512 => jose_jwa::Signing::Rs512,
+            JsonWebAlgorithm::Dir => jose_jwa::Signing::Null,
+            _ => return Err(Error::Unsupported(format!("{:?}", self))),
+        })
+    }
 }
 
 #[derive(

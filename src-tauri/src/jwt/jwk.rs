@@ -4,7 +4,7 @@ use rsa::RsaPrivateKey;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::{JwkeyAlgorithm, JwkeyOperation, JwkeyType, JwkeyUsage};
+use super::{JsonWebAlgorithm, JwkeyOperation, JwkeyType, JwkeyUsage};
 use crate::{enums::RsaKeySize, errors::Result, utils::random_bytes};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -12,7 +12,7 @@ use crate::{enums::RsaKeySize, errors::Result, utils::random_bytes};
 pub struct JwkGenerate {
     pub key_id: Option<String>,
     pub key_type: JwkeyType,
-    pub algorithm: Option<JwkeyAlgorithm>,
+    pub algorithm: Option<JsonWebAlgorithm>,
     pub usage: Option<JwkeyUsage>,
     pub operations: Option<Vec<JwkeyOperation>>,
     pub bits: Option<RsaKeySize>,
@@ -43,74 +43,74 @@ pub(crate) async fn generate_jwk(data: JwkGenerate) -> Result<String> {
 }
 
 pub(crate) async fn generate_jwk_inner(
-    algorithm: crate::jwt::JwkeyAlgorithm,
+    algorithm: crate::jwt::JsonWebAlgorithm,
 ) -> Result<serde_json::Value> {
     let mut rng = rand::thread_rng();
 
     let key = match algorithm {
-        JwkeyAlgorithm::Dir
-        | JwkeyAlgorithm::HS256
-        | JwkeyAlgorithm::A128GCM
-        | JwkeyAlgorithm::A128GCMKW
-        | JwkeyAlgorithm::A128KW
-        | JwkeyAlgorithm::A128cbcHs256 => {
+        JsonWebAlgorithm::Dir
+        | JsonWebAlgorithm::HS256
+        | JsonWebAlgorithm::A128GCM
+        | JsonWebAlgorithm::A128GCMKW
+        | JsonWebAlgorithm::A128KW
+        | JsonWebAlgorithm::A128cbcHs256 => {
             let key = random_bytes(32)?;
             jose_jwk::Key::Oct(jose_jwk::Oct { k: key.into() })
         }
-        JwkeyAlgorithm::HS384
-        | JwkeyAlgorithm::A192GCM
-        | JwkeyAlgorithm::A192GCMKW
-        | JwkeyAlgorithm::A192KW
-        | JwkeyAlgorithm::A192cbcHs384 => {
+        JsonWebAlgorithm::HS384
+        | JsonWebAlgorithm::A192GCM
+        | JsonWebAlgorithm::A192GCMKW
+        | JsonWebAlgorithm::A192KW
+        | JsonWebAlgorithm::A192cbcHs384 => {
             let key = random_bytes(48)?;
             jose_jwk::Key::Oct(jose_jwk::Oct { k: key.into() })
         }
-        JwkeyAlgorithm::HS512
-        | JwkeyAlgorithm::A256GCM
-        | JwkeyAlgorithm::A256GCMKW
-        | JwkeyAlgorithm::A256KW
-        | JwkeyAlgorithm::A256cbcHs512 => {
+        JsonWebAlgorithm::HS512
+        | JsonWebAlgorithm::A256GCM
+        | JsonWebAlgorithm::A256GCMKW
+        | JsonWebAlgorithm::A256KW
+        | JsonWebAlgorithm::A256cbcHs512 => {
             let key = random_bytes(64)?;
             jose_jwk::Key::Oct(jose_jwk::Oct { k: key.into() })
         }
-        JwkeyAlgorithm::ES256 => {
+        JsonWebAlgorithm::ES256 => {
             let secret_key =
                 elliptic_curve::SecretKey::<p256::NistP256>::random(&mut rng);
             jose_jwk::Key::Ec(jose_jwk::Ec::from(secret_key))
         }
-        JwkeyAlgorithm::ES384 => {
+        JsonWebAlgorithm::ES384 => {
             let secret_key =
                 elliptic_curve::SecretKey::<p384::NistP384>::random(&mut rng);
             jose_jwk::Key::Ec(jose_jwk::Ec::from(secret_key))
         }
-        JwkeyAlgorithm::ES521 => {
+        JsonWebAlgorithm::ES521 => {
             let secret_key =
                 elliptic_curve::SecretKey::<p521::NistP521>::random(&mut rng);
             jose_jwk::Key::Ec(jose_jwk::Ec::from(secret_key))
         }
-        JwkeyAlgorithm::ES256K => {
+        JsonWebAlgorithm::ES256K => {
             let secret_key =
                 elliptic_curve::SecretKey::<k256::Secp256k1>::random(&mut rng);
             jose_jwk::Key::Ec(jose_jwk::Ec::from(secret_key))
         }
-        JwkeyAlgorithm::RS256
-        | JwkeyAlgorithm::PS256
-        | JwkeyAlgorithm::RS384
-        | JwkeyAlgorithm::PS384
-        | JwkeyAlgorithm::RS512
-        | JwkeyAlgorithm::PS512
-        | JwkeyAlgorithm::Rsa1_5
-        | JwkeyAlgorithm::RsaOaep
-        | JwkeyAlgorithm::RsaOaep256
-        | JwkeyAlgorithm::RsaOaep384
-        | JwkeyAlgorithm::RsaOaep521 => {
+        JsonWebAlgorithm::RS256
+        | JsonWebAlgorithm::PS256
+        | JsonWebAlgorithm::RS384
+        | JsonWebAlgorithm::PS384
+        | JsonWebAlgorithm::RS512
+        | JsonWebAlgorithm::PS512
+        | JsonWebAlgorithm::Rsa1_5
+        | JsonWebAlgorithm::RsaOaep
+        | JsonWebAlgorithm::RsaOaep256
+        | JsonWebAlgorithm::RsaOaep384
+        | JsonWebAlgorithm::RsaOaep521 => {
             let private_key =
                 RsaPrivateKey::new(&mut rng, RsaKeySize::Rsa2048 as usize)
                     .context("generate rsa 2048 key failed")?;
             jose_jwk::Key::Rsa(jose_jwk::Rsa::from(private_key))
         }
 
-        JwkeyAlgorithm::EdDSA => {
+        JsonWebAlgorithm::EdDSA => {
             let ed = ed25519_dalek::SigningKey::generate(&mut rng);
             let ed_verify_key = ed.verifying_key();
             jose_jwk::Key::Okp(jose_jwk::Okp {
@@ -119,10 +119,10 @@ pub(crate) async fn generate_jwk_inner(
                 d: Some(ed.as_bytes().to_vec().into()),
             })
         }
-        JwkeyAlgorithm::EcdhEs
-        | JwkeyAlgorithm::EcdhEsA128kw
-        | JwkeyAlgorithm::EcdhEsA192kw
-        | JwkeyAlgorithm::EcdhEsA256kw => {
+        JsonWebAlgorithm::EcdhEs
+        | JsonWebAlgorithm::EcdhEsA128kw
+        | JsonWebAlgorithm::EcdhEsA192kw
+        | JsonWebAlgorithm::EcdhEsA256kw => {
             let x25519_key =
                 x25519_dalek::StaticSecret::random_from_rng(&mut rng);
             let x25519_pub_key = x25519_dalek::PublicKey::from(&x25519_key);
@@ -143,7 +143,7 @@ mod test {
     use tracing::info;
     use tracing_test::traced_test;
 
-    use super::JwkeyAlgorithm;
+    use super::JsonWebAlgorithm;
     use crate::{
         enums::RsaKeySize,
         jwt::{
@@ -158,13 +158,13 @@ mod test {
     async fn test_generate_jwk() {
         let ops = JwkeyOperation::iter().collect::<Vec<JwkeyOperation>>();
         for kty in JwkeyType::iter() {
-            for alg in JwkeyAlgorithm::iter() {
+            for alg in JsonWebAlgorithm::iter() {
                 let mut bits = None;
-                if alg.eq(&JwkeyAlgorithm::RS256) {
+                if alg.eq(&JsonWebAlgorithm::RS256) {
                     bits = Some(RsaKeySize::Rsa2048);
-                } else if alg.eq(&JwkeyAlgorithm::RS384) {
+                } else if alg.eq(&JsonWebAlgorithm::RS384) {
                     bits = Some(RsaKeySize::Rsa3072);
-                } else if alg.eq(&JwkeyAlgorithm::RS512) {
+                } else if alg.eq(&JsonWebAlgorithm::RS512) {
                     bits = Some(RsaKeySize::Rsa4096);
                 }
                 info!(

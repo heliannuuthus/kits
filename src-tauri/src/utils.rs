@@ -11,7 +11,7 @@ use super::{
 };
 use crate::{
     enums::RsaKeySize,
-    jwt::{JwkeyAlgorithm, JwkeyOperation, JwkeyType, JwkeyUsage},
+    jwt::{JsonWebAlgorithm, JwkeyOperation, JwkeyType, JwkeyUsage},
 };
 #[derive(Serialize, Deserialize)]
 pub struct KeyTuple(pub Option<String>, pub Option<String>);
@@ -88,46 +88,46 @@ pub fn rsa_encryption_padding() -> Vec<RsaEncryptionPadding> {
 }
 
 #[tauri::command]
-pub(crate) fn jwkey_algorithm(kty: JwkeyType) -> Vec<JwkeyAlgorithm> {
+pub(crate) fn jwkey_algorithm(kty: JwkeyType) -> Vec<JsonWebAlgorithm> {
     match kty {
         JwkeyType::RSA => vec![
-            JwkeyAlgorithm::RS256,
-            JwkeyAlgorithm::RS384,
-            JwkeyAlgorithm::RS512,
-            JwkeyAlgorithm::PS256,
-            JwkeyAlgorithm::PS384,
-            JwkeyAlgorithm::PS512,
+            JsonWebAlgorithm::RS256,
+            JsonWebAlgorithm::RS384,
+            JsonWebAlgorithm::RS512,
+            JsonWebAlgorithm::PS256,
+            JsonWebAlgorithm::PS384,
+            JsonWebAlgorithm::PS512,
         ],
         JwkeyType::EcDSA => vec![
-            JwkeyAlgorithm::ES256,
-            JwkeyAlgorithm::ES384,
-            JwkeyAlgorithm::ES521,
-            JwkeyAlgorithm::ES256K,
+            JsonWebAlgorithm::ES256,
+            JsonWebAlgorithm::ES384,
+            JsonWebAlgorithm::ES521,
+            JsonWebAlgorithm::ES256K,
         ],
-        JwkeyType::Ed25519 => vec![JwkeyAlgorithm::EdDSA],
+        JwkeyType::Ed25519 => vec![JsonWebAlgorithm::EdDSA],
         JwkeyType::X25519 => vec![
-            JwkeyAlgorithm::EcdhEs,
-            JwkeyAlgorithm::EcdhEsA128kw,
-            JwkeyAlgorithm::EcdhEsA192kw,
-            JwkeyAlgorithm::EcdhEsA256kw,
+            JsonWebAlgorithm::EcdhEs,
+            JsonWebAlgorithm::EcdhEsA128kw,
+            JsonWebAlgorithm::EcdhEsA192kw,
+            JsonWebAlgorithm::EcdhEsA256kw,
         ],
         JwkeyType::Symmetric => vec![
-            JwkeyAlgorithm::Dir,
-            JwkeyAlgorithm::HS256,
-            JwkeyAlgorithm::A128GCM,
-            JwkeyAlgorithm::A128GCMKW,
-            JwkeyAlgorithm::A128KW,
-            JwkeyAlgorithm::A128cbcHs256,
-            JwkeyAlgorithm::HS384,
-            JwkeyAlgorithm::A192GCM,
-            JwkeyAlgorithm::A192GCMKW,
-            JwkeyAlgorithm::A192KW,
-            JwkeyAlgorithm::A192cbcHs384,
-            JwkeyAlgorithm::HS512,
-            JwkeyAlgorithm::A256GCM,
-            JwkeyAlgorithm::A256GCMKW,
-            JwkeyAlgorithm::A256KW,
-            JwkeyAlgorithm::A256cbcHs512,
+            JsonWebAlgorithm::Dir,
+            JsonWebAlgorithm::HS256,
+            JsonWebAlgorithm::A128GCM,
+            JsonWebAlgorithm::A128GCMKW,
+            JsonWebAlgorithm::A128KW,
+            JsonWebAlgorithm::A128cbcHs256,
+            JsonWebAlgorithm::HS384,
+            JsonWebAlgorithm::A192GCM,
+            JsonWebAlgorithm::A192GCMKW,
+            JsonWebAlgorithm::A192KW,
+            JsonWebAlgorithm::A192cbcHs384,
+            JsonWebAlgorithm::HS512,
+            JsonWebAlgorithm::A256GCM,
+            JsonWebAlgorithm::A256GCMKW,
+            JsonWebAlgorithm::A256KW,
+            JsonWebAlgorithm::A256cbcHs512,
         ],
     }
 }
